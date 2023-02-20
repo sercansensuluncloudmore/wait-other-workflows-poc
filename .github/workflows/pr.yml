@@ -1,8 +1,5 @@
 name: Pull Request Workflow
-on:
-  pull_request:
-    branches:
-      - main
+on: workflow_dispatch
 jobs:
   trigger-test-suite-1:
     runs-on: ubuntu-latest
