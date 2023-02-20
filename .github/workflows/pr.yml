@@ -1,46 +1,47 @@
 name: Pull Request Workflow
-on: 
+on:
   pull_request:
     branches:
       - master
 jobs:
-  trigger-test-suite-1:
+  test-suite-1:
     needs: pull_request
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Test Suite 1 Workflow
-        uses: peter-evans/repository-dispatch@v1
+      # Trigger the Test Suite 1 workflow
+      - name: Trigger Test Suite 1
+        uses: peter-evans/trigger-workflow@v2
         with:
+          workflow: 'Test Suite 1'
           token: ${{ secrets.PAT }}
-          repository: ${{ github.repository }}
-          event-type: run-test-suite-1
-  trigger-test-suite-2:
+  test-suite-2:
     needs: pull_request
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Test Suite 2 Workflow
-        uses: peter-evans/repository-dispatch@v1
+      # Trigger the Test Suite 2 workflow
+      - name: Trigger Test Suite 2
+        uses: peter-evans/trigger-workflow@v2
         with:
+          workflow: 'Test Suite 2'
           token: ${{ secrets.PAT }}
-          repository: ${{ github.repository }}
-          event-type: run-test-suite-2
-  ready-to-merge-or-not:
-    needs: [trigger-test-suite-1, trigger-test-suite-2]
+  merge-or-decline:
+    needs: [test-suite-1, test-suite-2]
     runs-on: ubuntu-latest
     steps:
+      # Check if both test suites passed
       - name: Check Test Results
         run: |
-          if [ "${{ needs.trigger-test-suite-1.outcome }}" == "success" ] && [ "${{ needs.trigger-test-suite-2.outcome }}" == "success" ]; then
-            echo "All tests passed. Ready to merge."
-            # Add the "ready to merge" label to the pull request
-            curl -X POST -H "Authorization: Bearer ${{ secrets.PAT }}" \
+          if [ "${{ needs.test-suite-1.outcome }}" == "success" ] && [ "${{ needs.test-suite-2.outcome }}" == "success" ]; then
+            echo "All tests passed. Merging pull request..."
+            # Merge the pull request using the GitHub API
+            curl -X PUT -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            -d '{"labels":["ready to merge"]}' \
-            "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels"
+            "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge"
           else
-            echo "Tests failed. Not ready to merge."
-            # Remove the "ready to merge" label from the pull request, test
-            curl -X DELETE -H "Authorization: Bearer ${{ secrets.PAT }}" \
+            echo "Tests failed. Declining pull request..."
+            # Close the pull request using the GitHub API
+            curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
-            "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/ready%20to%20merge"
+            -d '{"state":"closed"}' \
+            "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}"
           fi
