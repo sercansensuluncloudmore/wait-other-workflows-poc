@@ -5,6 +5,7 @@ on:
       - master
 jobs:
   trigger-test-suite-1:
+    needs: pull_request
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Test Suite 1 Workflow
@@ -14,6 +15,7 @@ jobs:
           repository: ${{ github.repository }}
           event-type: run-test-suite-1
   trigger-test-suite-2:
+    needs: pull_request
     runs-on: ubuntu-latest
     needs: trigger-test-suite-1
     steps:
