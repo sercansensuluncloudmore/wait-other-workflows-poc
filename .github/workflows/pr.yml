@@ -25,7 +25,7 @@ jobs:
           repository: ${{ github.repository }}
           event-type: run-test-suite-2
   ready-to-merge-or-not:
-    needs: [trigger-test-suite-1, trigger-test-suite-2]
+    needs: [test-suite-1, test-suite-2]
     runs-on: ubuntu-latest
     steps:
       - name: Check Test Results
