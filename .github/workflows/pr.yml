@@ -1,5 +1,8 @@
 name: Pull Request Workflow
-on: workflow_dispatch
+on: 
+  pull_request:
+    branches:
+      - main
 jobs:
   trigger-test-suite-1:
     runs-on: ubuntu-latest
@@ -20,16 +23,23 @@ jobs:
           token: ${{ secrets.PAT }}
           repository: ${{ github.repository }}
           event-type: run-test-suite-2
-  merge-or-decline:
+  ready-to-merge-or-not:
     needs: [trigger-test-suite-1, trigger-test-suite-2]
     runs-on: ubuntu-latest
     steps:
       - name: Check Test Results
         run: |
           if [ "${{ needs.trigger-test-suite-1.outcome }}" == "success" ] && [ "${{ needs.trigger-test-suite-2.outcome }}" == "success" ]; then
-            echo "All tests passed. Merging PR..."
-            # Add merge command here
+            echo "All tests passed. Ready to merge."
+            # Add the "ready to merge" label to the pull request
+            curl -X POST -H "Authorization: Bearer ${{ secrets.PAT }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"labels":["ready to merge"]}' \
+            "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels"
           else
-            echo "Tests failed. Declining PR..."
-            # Add decline command here
+            echo "Tests failed. Not ready to merge."
+            # Remove the "ready to merge" label from the pull request
+            curl -X DELETE -H "Authorization: Bearer ${{ secrets.PAT }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/ready%20to%20merge"
           fi
