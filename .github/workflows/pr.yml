@@ -38,7 +38,7 @@ jobs:
             "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels"
           else
             echo "Tests failed. Not ready to merge."
-            # Remove the "ready to merge" label from the pull request
+            # Remove the "ready to merge" label from the pull request, test
             curl -X DELETE -H "Authorization: Bearer ${{ secrets.PAT }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "${{ github.api_url }}/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels/ready%20to%20merge"
