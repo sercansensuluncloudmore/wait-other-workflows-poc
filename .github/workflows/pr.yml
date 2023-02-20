@@ -2,10 +2,9 @@ name: Pull Request Workflow
 on:
   pull_request:
     branches:
-      - master
+      - main
 jobs:
   test-suite-1:
-    needs: pull_request
     runs-on: ubuntu-latest
     steps:
       # Trigger the Test Suite 1 workflow
@@ -15,7 +14,6 @@ jobs:
           workflow: 'Test Suite 1'
           token: ${{ secrets.PAT }}
   test-suite-2:
-    needs: pull_request
     runs-on: ubuntu-latest
     steps:
       # Trigger the Test Suite 2 workflow
@@ -31,16 +29,16 @@ jobs:
       # Check if both test suites passed
       - name: Check Test Results
         run: |
-          if [ "${{ needs.test-suite-1.outcome }}" == "success" ] && [ "${{ needs.test-suite-2.outcome }}" == "success" ]; then
+          if [ "${{ needs.test-suite-1.result }}" == "success" ] && [ "${{ needs.test-suite-2.result }}" == "success" ]; then
             echo "All tests passed. Merging pull request..."
             # Merge the pull request using the GitHub API
-            curl -X PUT -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            curl -X PUT -H "Authorization: Bearer ${{ secrets.PAT }}" \
             -H "Accept: application/vnd.github.v3+json" \
             "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/merge"
           else
             echo "Tests failed. Declining pull request..."
             # Close the pull request using the GitHub API
-            curl -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            curl -X PATCH -H "Authorization: Bearer ${{ secrets.PAT }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -d '{"state":"closed"}' \
             "${{ github.api_url }}/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}"
