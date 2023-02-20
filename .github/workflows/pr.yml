@@ -9,7 +9,7 @@ jobs:
     steps:
       # Trigger the Test Suite 1 workflow
       - name: Trigger Test Suite 1
-        uses: peter-evans/trigger-workflow@v2
+        uses: jakejarvis/gh-action-workflow-dispatch@v1
         with:
           workflow: 'Test Suite 1'
           token: ${{ secrets.PAT }}
@@ -18,7 +18,7 @@ jobs:
     steps:
       # Trigger the Test Suite 2 workflow
       - name: Trigger Test Suite 2
-        uses: peter-evans/trigger-workflow@v2
+        uses: jakejarvis/gh-action-workflow-dispatch@v1
         with:
           workflow: 'Test Suite 2'
           token: ${{ secrets.PAT }}
